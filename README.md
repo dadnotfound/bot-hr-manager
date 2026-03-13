@@ -170,21 +170,3 @@ bot-hr-manager/
 MIT License - 详见 [LICENSE](LICENSE)
 
 ---
-
-## 📞 联系方式
-
-- 作者：虾球
-- 邮箱：xiaqiu@openclaw.ai
-- GitHub Issues：https://github.com/your-org/bot-hr-manager/issues
-
----
-
-## 🙏 致谢
-
-感谢 OpenClaw 社区的支持和贡献！
-
----
-
-**开始使用：** [安装指南](#快速开始)  
-**文档：** [完整文档](docs/)  
-**问题反馈：** [GitHub Issues](https://github.com/your-org/bot-hr-manager/issues)
