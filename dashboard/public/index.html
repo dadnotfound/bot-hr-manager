@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot HR Manager Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-card h3 {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .stat-card .subtitle {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+
+    .stat-card.success .value {
+      color: #52c41a;
+    }
+
+    .stat-card.warning .value {
+      color: #faad14;
+    }
+
+    .stat-card.critical .value {
+      color: #f5222d;
+    }
+
+    .section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .section h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    .bot-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .bot-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      border-left: 3px solid #1890ff;
+    }
+
+    .bot-item.level-senior {
+      border-left-color: #722ed1;
+    }
+
+    .bot-item.level-expert {
+      border-left-color: #fa8c16;
+    }
+
+    .bot-info {
+      flex: 1;
+    }
+
+    .bot-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .bot-type {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .bot-metrics {
+      display: flex;
+      gap: 20px;
+      font-size: 14px;
+    }
+
+    .metric {
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .metric-value {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .alert.warning {
+      background: #fff7e6;
+      border: 1px solid #ffd591;
+      color: #fa8c16;
+    }
+
+    .alert.critical {
+      background: #fff1f0;
+      border: 1px solid #ffa39e;
+      color: #f5222d;
+    }
+
+    .alert-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .ranking-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .ranking-table th,
+    .ranking-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .ranking-table th {
+      background: #f9f9f9;
+      font-weight: bold;
+    }
+
+    .rank-badge {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+      text-align: center;
+      border-radius: 50%;
+      background: #1890ff;
+      color: white;
+      font-weight: bold;
+    }
+
+    .rank-1 .rank-badge {
+      background: #ffd700;
+    }
+
+    .rank-2 .rank-badge {
+      background: #c0c0c0;
+    }
+
+    .rank-3 .rank-badge {
+      background: #cd7f32;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🤖 Bot HR Manager Dashboard</h1>
+      <p style="color: #666; margin-bottom: 10px;">像 HR 一样管理你的 AI Bot</p>
+      <div style="font-size: 12px; color: #999;">
+        <span id="currentTime"></span> | 
+        <span id="botCount">0</span> 个 Bot 正在监控
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>💰 本月 Token 使用</h3>
+        <div class="value" id="totalTokens">0</div>
+        <div class="subtitle">总计</div>
+      </div>
+      
+      <div class="stat-card">
+        <h3>📊 平均成功率</h3>
+        <div class="value" id="avgSuccessRate">0%</div>
+        <div class="subtitle">所有 Bot 平均</div>
+      </div>
+      
+      <div class="stat-card">
+        <h3>⚡ Token 效率</h3>
+        <div class="value" id="tokenEfficiency">0</div>
+        <div class="subtitle">Tokens/任务</div>
+      </div>
+      
+      <div class="stat-card">
+        <h3>🔔 告警数量</h3>
+        <div class="value warning" id="alertCount">0</div>
+        <div class="subtitle">本月累计</div>
+      </div>
+    </div>
+
+    <!-- Bot 列表 -->
+    <div class="section">
+      <h2>🤖 Bot 列表</h2>
+      <div id="botList" class="bot-list">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+
+    <!-- Token 使用趋势 -->
+    <div class="section">
+      <h2>📈 Token 使用趋势（7天）</h2>
+      <div class="chart-container">
+        <canvas id="tokenChart"></canvas>
+      </div>
+    </div>
+
+    <!-- 绩效对比 -->
+    <div class="section">
+      <h2>📊 Bot 绩效对比</h2>
+      <div class="chart-container">
+        <canvas id="performanceChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Bot 排行榜 -->
+    <div class="section">
+      <h2>🏆 Token 效率排行榜</h2>
+      <table class="ranking-table" id="rankingTable">
+        <thead>
+          <tr>
+            <th>排名</th>
+            <th>Bot 名称</th>
+            <th>Token 效率</th>
+            <th>成功率</th>
+            <th>用户满意度</th>
+          </tr>
+        </thead>
+        <tbody id="rankingBody">
+          <tr>
+            <td colspan="5" class="loading">加载中...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 最近告警 -->
+    <div class="section">
+      <h2>🔔 最近告警</h2>
+      <div id="alertList">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
